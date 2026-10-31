@@ -7,10 +7,10 @@
         Username = User.Identity.IsAuthenticated ? User.Identity.Name : string.Empty
     };
 
-    //if(cart != null )
-    //{
-    //    ViewBag.pmmodel.CartCount = cart.Items.Count();
-    //}
+    if (cart != null && cart.Items.Any())
+    {
+        ViewBag.pmmodel.CartCount = cart.Items.Count();
+    }
 }
 
 
