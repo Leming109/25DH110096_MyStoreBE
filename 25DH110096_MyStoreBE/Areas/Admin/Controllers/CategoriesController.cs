@@ -62,17 +62,17 @@ namespace _25DH110096_MyStoreBE.Areas.Admin.Controllers
         // GET: Admin/Categories/Edit/5
         public ActionResult Edit(int? id)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Category category = db.Categories.Find(id);
-            if (category == null)
-            {
-                return HttpNotFound();
-            }
-            return View(category);
-            //return View(Details(id));
+            //if (id == null)
+            //{
+            //    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            //}
+            //Category category = db.Categories.Find(id);
+            //if (category == null)
+            //{
+            //    return HttpNotFound();
+            //}
+            //return View(category);
+            return View(Details(id));
         }
 
         // POST: Admin/Categories/Edit/5
@@ -94,17 +94,17 @@ namespace _25DH110096_MyStoreBE.Areas.Admin.Controllers
         // GET: Admin/Categories/Delete/5
         public ActionResult Delete(int? id)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Category category = db.Categories.Find(id);
-            if (category == null)
-            {
-                return HttpNotFound();
-            }
-            return View(category);
-            //return View(Details(id));
+            //if (id == null)
+            //{
+            //    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            //}
+            //Category category = db.Categories.Find(id);
+            //if (category == null)
+            //{
+            //    return HttpNotFound();
+            //}
+            //return View(category);
+            return View(Details(id));
         }
 
         // POST: Admin/Categories/Delete/5

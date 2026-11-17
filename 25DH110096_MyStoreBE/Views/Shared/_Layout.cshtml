@@ -1,132 +1,331 @@
-﻿@{
-    var cart = Session["Cart"] as _25DH110096_MyStoreBE.Models.ViewModel.Cart;
+﻿
+@{
+    // Lấy giỏ hàng từ Session
+    var cart = Session["Cart"] as
+        _25DH110096_MyStoreBE.Models.ViewModel.Cart;
 
-    ViewBag.pmmodel = new _25DH110096_MyStoreBE.Models.ViewModel.PersonalMenuVM
+    // Khởi tạo thông tin menu tài khoản
+    var pmmodel = new
+        _25DH110096_MyStoreBE.Models.ViewModel.PersonalMenuVM
     {
         IsLoggedIn = User.Identity.IsAuthenticated,
-        Username = User.Identity.IsAuthenticated ? User.Identity.Name : string.Empty
+        Username = User.Identity.IsAuthenticated
+            ? User.Identity.Name
+            : string.Empty
     };
 
-    if (cart != null && cart.Items.Any())
+    // Cập nhật số lượng sản phẩm trong giỏ hàng
+    if (cart != null && cart.Items != null)
     {
-        ViewBag.pmmodel.CartCount = cart.Items.Count();
+        pmmodel.CartCount = cart.Items.Count();
     }
 }
-
-
-
 
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>@ViewBag.Title - My ASP.NET Application</title>
+
     @Styles.Render("~/Content/css")
+
     @Scripts.Render("~/bundles/modernizr")
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
 
     <style>
-        ul {
-            list-style-type: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
+        /* ================= NAVBAR ================= */
+
+        body {
+            padding-top: 100px;
         }
 
-        li {
-            margin-right: 20px;
+        .navbar.navbar-fixed-top {
+            background-color: #fff;
+            border-bottom: 1px solid #ddd;
+        }
+
+        /* Thanh thông báo Free Ship */
+        .promo-bar {
+            background-color: lightgreen;
+            text-align: center;
+            padding: 1px 10px;
+        }
+
+            .promo-bar h4 {
+                color: green;
+                margin: 7px 0;
+                font-weight: bold;
+            }
+
+        /* Logo */
+        .navbar-brand img {
+            max-height: 30px;
+            width: auto;
+        }
+
+        /* Menu */
+        .navbar .navbar-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+            .navbar .navbar-nav > li {
+                position: relative;
+            }
+
+                .navbar .navbar-nav > li > a {
+                    cursor: pointer;
+                }
+
+            /* Icon menu */
+            .navbar .navbar-nav i {
+                margin-right: 5px;
+            }
+
+        /* ================= DROPDOWN ================= */
+
+        .navbar .dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: #fff;
+            min-width: 190px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+            border: 1px solid #eee;
+            border-radius: 5px;
+            z-index: 1000;
+        }
+
+            .navbar .dropdown-content a {
+                color: #333;
+                padding: 12px 15px;
+                text-decoration: none;
+                display: block;
+                white-space: nowrap;
+            }
+
+                .navbar .dropdown-content a:hover {
+                    background-color: #f1f1f1;
+                    color: #c62828;
+                }
+
+        .navbar .dropdown:hover .dropdown-content,
+        .navbar .dropdown:focus-within .dropdown-content {
+            display: block;
+        }
+
+        /* ================= CART ================= */
+
+        .cart-link {
             position: relative;
         }
 
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            background-color: #f9f9f9;
-            min-width: 160px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,2);
-            z-index: 1;
+        .cart-badge {
+            display: inline-block;
+            background-color: #c62828;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            min-width: 18px;
+            height: 18px;
+            line-height: 18px;
+            text-align: center;
+            border-radius: 50%;
+            margin-left: 3px;
         }
 
-            .dropdown-content a {
-                color: black;
-                padding: 12px 16px;
-                text-decoration: none;
-                display: block;
+        /* Nội dung các View */
+        .body-content {
+            padding-bottom: 30px;
+        }
+
+        /* Responsive */
+        @@media (max-width: 767px) {
+            body {
+                padding-top: 90px;
             }
 
-                .dropdown-content a:hover {
-                    background-color: #f1f1f1;
-                }
+            .promo-bar h4 {
+                font-size: 13px;
+            }
 
-        .dropdown:hover .dropdown-content {
-            display: block;
+            .navbar .dropdown-content {
+                left: 0;
+                right: auto;
+            }
         }
     </style>
+
+    @* CSS riêng của từng View *@
+    @RenderSection("Styles", required: false)
+
 </head>
+
 <body>
+
+    @* ================= NAVBAR ================= *@
+
     <div class="navbar navbar-default navbar-fixed-top">
-        <header class="container" style="background-color: lightgreen;">
-            <h4 style="text-align: center; color:green;">
-                Free ship đơn từ 40k, giảm nhiều hơn cùng <span style="font-weight:bolder;
-             font-style:italic;"><span style="color: blue;">FREESHIP</span>EXTRA</span>
-            </h4>
-        </header>
+
+        @* Thanh thông báo *@
+        <div class="promo-bar">
+            <div class="container">
+                <h4>
+                    Free ship đơn từ 40k, giảm nhiều hơn cùng
+                    <span style="font-weight: bolder; font-style: italic;">
+                        <span style="color: blue;">FREESHIP</span>EXTRA
+                    </span>
+                </h4>
+            </div>
+        </div>
+
         <div class="container">
+
+            @* Logo *@
             <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse" title="more options">
+
+                <button type="button"
+                        class="navbar-toggle"
+                        data-toggle="collapse"
+                        data-target=".navbar-collapse"
+                        title="more options">
+
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
+
                 </button>
-                <a href="\Home\Index" class="navbar-brand"><img src="~/Images/logo.PNG" style="max-height:30px;" /></a>
+
+                <a href="@Url.Action("Index", "Home")"
+                   class="navbar-brand">
+
+                    <img src="@Url.Content("~/Images/logo.PNG")"
+                         alt="My Store Logo" />
+
+                </a>
+
             </div>
 
-            <div class="navbar-collapse collapse navbar-right">
-                <ul class="nav navbar-nav">
+            @* Các chức năng Navbar *@
+            <div class="navbar-collapse collapse">
+
+                <ul class="nav navbar-nav navbar-right">
+
+                    @* Trang chủ *@
                     <li>
-                        <div style="position:relative;">
+                        <a href="@Url.Action("Index", "Home")">
                             <i class="fas fa-home"></i>
-                            @Html.ActionLink("Trang chủ", "Index", "Home")
-                        </div>
+                            Trang chủ
+                        </a>
                     </li>
+
+                    @* Tài khoản *@
                     <li class="dropdown">
-                        <div style="position: relative;">
+
+                        <a href="javascript:void(0)"
+                           id="account-name">
+
                             <i class="fas fa-user"></i>
-                            <a href="javascript:void(0)" id="account-name">
-                                @if (ViewBag.pmmodel.IsLoggedIn)
-                                {
-                                    <text>Hello,</text>@ViewBag.pmmodel.Username
-                                }
-                                else
-                                {
-                                    <text>Tài khoản</text>
-                                }
-                            </a>
-                            <div class="dropdown-content">
-                                @if (ViewBag.pmmodel.IsLoggedIn)
-                                {
-                                    <a href="@Url.Action("Profile", "Account")">Thông tin tài khoản</a>
-                                    <a href="@Url.Action("OrderHistory", "Order")">Lịch sử mua hàng</a>
-                                    <a href="@Url.Action("Logout", "Account")">Đăng xuất</a>
-                                }
-                                else
-                                {
-                                    <a href="@Url.Action("Register", "Account")">Đăng ký</a>
-                                    <a href="@Url.Action("Login", "Account")">Đăng nhập</a>
-                                }
-                            </div>
+
+                            @if (pmmodel.IsLoggedIn)
+                            {
+                                <span>Hello, @pmmodel.Username</span>
+                            }
+                            else
+                            {
+                                <span>Tài khoản</span>
+                            }
+
+                            <i class="fas fa-angle-down"></i>
+
+                        </a>
+
+                        <div class="dropdown-content">
+
+                            @if (pmmodel.IsLoggedIn)
+                            {
+                                <a href="@Url.Action("Profile", "Account")">
+                                    <i class="fas fa-user-circle"></i>
+                                    Thông tin tài khoản
+                                </a>
+
+                                <a href="@Url.Action("OrderHistory", "Order")">
+                                    <i class="fas fa-history"></i>
+                                    Lịch sử mua hàng
+                                </a>
+
+                                <a href="@Url.Action("Logout", "Account")">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    Đăng xuất
+                                </a>
+                            }
+                            else
+                            {
+                                <a href="@Url.Action("Register", "Account")">
+                                    <i class="fas fa-user-plus"></i>
+                                    Đăng ký
+                                </a>
+
+                                <a href="@Url.Action("Login", "Account")">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                    Đăng nhập
+                                </a>
+                            }
+
                         </div>
+
                     </li>
+
+                    @* Giỏ hàng *@
                     <li>
-                        <div>
-                            <a href="@Url.Action("Index", "Cart")"></a>
-                        </div>
+
+                        <a href="@Url.Action("Index", "Cart")"
+                           class="cart-link">
+
+                            <i class="fas fa-shopping-cart"></i>
+                            Giỏ hàng
+
+                            @if (pmmodel.CartCount > 0)
+                            {
+                                <span class="cart-badge">
+                                    @pmmodel.CartCount
+                                </span>
+                            }
+
+                        </a>
+
                     </li>
+
                 </ul>
 
             </div>
+
         </div>
+
     </div>
+
+
+    <main class="container body-content">
+
+        @RenderBody()
+
+    </main>
+
+
+    @Scripts.Render("~/bundles/jquery")
+
+    @Scripts.Render("~/bundles/bootstrap")
+
+    @* Hỗ trợ section Scripts *@
+    @RenderSection("Scripts", required: false)
+
+    @RenderSection("scripts", required: false)
+
 </body>
 </html>
