@@ -7,6 +7,7 @@ using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using _25DH110096_MyStoreBE.Models;
+using System.Data.Entity.Infrastructure;
 
 namespace _25DH110096_MyStoreBE.Areas.Admin.Controllers
 {
@@ -17,7 +18,11 @@ namespace _25DH110096_MyStoreBE.Areas.Admin.Controllers
         // GET: Admin/Categories
         public ActionResult Index()
         {
-            return View(db.Categories.ToList());
+            var categories = db.Categories
+                .Include(c => c.Products)
+                .ToList();
+
+            return View(categories);
         }
 
         // GET: Admin/Categories/Details/5
@@ -62,17 +67,17 @@ namespace _25DH110096_MyStoreBE.Areas.Admin.Controllers
         // GET: Admin/Categories/Edit/5
         public ActionResult Edit(int? id)
         {
-            //if (id == null)
-            //{
-            //    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            //}
-            //Category category = db.Categories.Find(id);
-            //if (category == null)
-            //{
-            //    return HttpNotFound();
-            //}
-            //return View(category);
-            return View(Details(id));
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            Category category = db.Categories.Find(id);
+            if (category == null)
+            {
+                return HttpNotFound();
+            }
+            return View(category);
+            //return View(Details(id));
         }
 
         // POST: Admin/Categories/Edit/5
@@ -94,17 +99,27 @@ namespace _25DH110096_MyStoreBE.Areas.Admin.Controllers
         // GET: Admin/Categories/Delete/5
         public ActionResult Delete(int? id)
         {
-            //if (id == null)
-            //{
-            //    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            //}
-            //Category category = db.Categories.Find(id);
-            //if (category == null)
-            //{
-            //    return HttpNotFound();
-            //}
-            //return View(category);
-            return View(Details(id));
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            Category category = db.Categories
+                .Include(c => c.Products)
+                .SingleOrDefault(c => c.CategoryID == id.Value);
+
+            if (category == null)
+            {
+                return HttpNotFound();
+            }
+
+            // Đếm số sản phẩm thuộc danh mục
+            ViewBag.ProductCount = category.Products.Count;
+
+            // Lấy thông báo lỗi nếu có
+            ViewBag.DeleteError = TempData["DeleteError"];
+
+            return View(category);
         }
 
         // POST: Admin/Categories/Delete/5
@@ -112,10 +127,43 @@ namespace _25DH110096_MyStoreBE.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            Category category = db.Categories.Find(id);
-            db.Categories.Remove(category);
-            db.SaveChanges();
-            return RedirectToAction("Index");
+            Category category = db.Categories
+                .Include(c => c.Products)
+                .SingleOrDefault(c => c.CategoryID == id);
+
+            if (category == null)
+            {
+                return HttpNotFound();
+            }
+
+            // Kiểm tra sản phẩm liên quan trước khi xóa
+            if (category.Products.Any())
+            {
+                TempData["DeleteError"] =
+                    "Không thể xóa danh mục '" + category.CategoryName +
+                    "' vì hiện đang có " + category.Products.Count +
+                    " sản phẩm thuộc danh mục này. " +
+                    "Vui lòng chuyển sản phẩm sang danh mục khác trước khi xóa.";
+
+                return RedirectToAction("Delete", new { id = id });
+            }
+
+            try
+            {
+                db.Categories.Remove(category);
+                db.SaveChanges();
+
+                return RedirectToAction("Index");
+            }
+            catch (DbUpdateException)
+            {
+                // Phòng trường hợp phát sinh ràng buộc dữ liệu
+                // trong lúc thực hiện thao tác xóa
+                TempData["DeleteError"] =
+                    "Không thể xóa danh mục vì vẫn còn dữ liệu liên quan.";
+
+                return RedirectToAction("Delete", new { id = id });
+            }
         }
 
         protected override void Dispose(bool disposing)

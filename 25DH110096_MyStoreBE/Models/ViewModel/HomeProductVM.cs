@@ -1,8 +1,6 @@
-﻿using System;
+﻿using _25DH110096_MyStoreBE.Models;
+using PagedList;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using PagedList.Mvc;
 
 namespace _25DH110096_MyStoreBE.Models.ViewModel
 {
@@ -10,11 +8,16 @@ namespace _25DH110096_MyStoreBE.Models.ViewModel
     {
         public string SearchTerm { get; set; }
 
+        public string SearchString
+        {
+            get { return SearchTerm; }
+            set { SearchTerm = value; }
+        }
+
         public int PageNumber { get; set; }
-        public int PageSize { get; set; } = 10;
-
+        public int PageSize { get; set; } = 6;
         public List<Product> FeaturedProducts { get; set; }
-
-        public PagedList.IPagedList<Product> NewProducts { get; set; }
+        public IPagedList<Product> NewProducts { get; set; }
     }
 }
+

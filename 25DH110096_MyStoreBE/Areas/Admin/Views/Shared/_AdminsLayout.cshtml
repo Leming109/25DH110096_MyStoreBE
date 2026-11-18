@@ -1,47 +1,262 @@
 ﻿<!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title - My ASP.NET Application</title>
+    <title>@ViewBag.Title - FASTOR Admin</title>
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #333;
+            background-color: #fff;
+        }
+
+        body {
+            min-height: 100vh;
+        }
+
+        .admin-layout {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+
+        .admin-navbar {
+            width: 100%;
+            min-height: 60px;
+            background-color: #222;
+            border-top: 3px solid #a82d3b;
+            border-bottom: 1px solid #444;
+            position: relative;
+            z-index: 1000;
+        }
+
+        .admin-nav-inner {
+            width: 100%;
+            min-height: 57px;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            gap: 22px;
+        }
+
+        .admin-brand {
+            display: inline-block;
+            flex-shrink: 0;
+            padding: 5px 10px;
+            background-color: #fff;
+            color: #333 !important;
+            text-decoration: none !important;
+            font-size: 23px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            line-height: 1.2;
+        }
+
+            .admin-brand:hover {
+                background-color: #f2f2f2;
+            }
+
+        .admin-nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+            .admin-nav-menu li {
+                margin: 0;
+                padding: 0;
+            }
+
+            .admin-nav-menu a {
+                display: block;
+                padding: 19px 16px;
+                color: #aaa;
+                text-decoration: none;
+                font-size: 16px;
+                transition: all 0.2s ease;
+            }
+
+                .admin-nav-menu a:hover,
+                .admin-nav-menu li.active a {
+                    color: #fff;
+                    background-color: #303030;
+                    border-bottom: 3px solid #c5303e;
+                }
+
+        .admin-nav-toggle {
+            display: none;
+        }
+
+        .admin-nav-button {
+            display: none;
+            margin-left: auto;
+            color: #fff;
+            font-size: 26px;
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+
+
+        .admin-main {
+            flex: 1 0 auto;
+            width: 100%;
+            padding: 20px;
+            background-color: #fff;
+        }
+
+        .admin-footer {
+            width: 100%;
+            min-height: 110px;
+            padding: 20px 20px;
+            background-color: #d3d3d3;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-shrink: 0;
+        }
+
+        .footer-left {
+            font-size: 15px;
+            color: #333;
+        }
+
+        .footer-right {
+            text-align: right;
+            color: #333;
+        }
+
+            .footer-right h4 {
+                margin: 0 0 10px 0;
+                font-size: 20px;
+                font-weight: 500;
+            }
+
+            .footer-right p {
+                margin: 5px 0;
+                font-size: 15px;
+                line-height: 1.5;
+            }
+
+
+        @@media (max-width: 768px) {
+            .admin-nav-inner {
+                flex-wrap: wrap;
+                padding: 10px 15px;
+            }
+
+            .admin-nav-button {
+                display: block;
+            }
+
+            .admin-nav-menu {
+                display: none;
+                flex-direction: column;
+                align-items: stretch;
+                width: 100%;
+                margin: 0;
+                background-color: #222;
+            }
+
+                .admin-nav-menu li {
+                    width: 100%;
+                }
+
+                .admin-nav-menu a {
+                    padding: 13px 15px;
+                    border-bottom: 1px solid #383838;
+                }
+
+            .admin-nav-toggle:checked ~ .admin-nav-menu {
+                display: flex;
+            }
+
+            .admin-main {
+                padding: 15px 10px;
+            }
+
+            .admin-footer {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 20px;
+            }
+
+            .footer-right {
+                text-align: left;
+            }
+        }
+    </style>
 </head>
+
 <body>
-    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark">
-        <div class="container">
-            <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" title="Toggle navigation" aria-controls="navbarSupportedContent"
-                    aria-expanded="false" aria-label="Toggle navigation">
-                <span class="icon-bar"></span> 
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>  
-            </button>
-            @Html.ActionLink("My Store", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
-            <div class="collapse navbar-collapse ">
-                <ul class="nav navbar-nav">
-                    <li>@Html.ActionLink("Home", "Index", "AdminHome")</li>
-                    <li>@Html.ActionLink("Danh mục", "Index", "Categories")</li>
-                    <li>@Html.ActionLink("Sản phẩm", "Index", "Product")</li>
-                    <li>@Html.ActionLink("Khách hàng", "Index", "Customers")</li>
-                    <li>@Html.ActionLink("Đơn hàng", "Index", "Orders")</li>
-                    <li>@Html.ActionLink("Tài khoản", "Index", "Users")</li>
+    <div class="admin-layout">
+
+
+        <nav class="admin-navbar">
+            <div class="admin-nav-inner">
+                @Html.ActionLink("FASTOR","Index","AdminHome",new { area = "" },new { @class = "admin-brand" })
+                <input type="checkbox"
+                       id="adminNavToggle"
+                       class="admin-nav-toggle" />
+                <label for="adminNavToggle" class="admin-nav-button">
+                    &#9776;
+                </label>
+                <ul class="admin-nav-menu">
+                    <li>
+                        @Html.ActionLink("HomeAdmin", "Index", "AdminHome")
+                    </li>
+                    <li>
+                        @Html.ActionLink("Danh mục", "Index", "Categories")
+                    </li>
+                    <li>
+                        @Html.ActionLink("Sản phẩm", "Index", "Products")
+                    </li>
+                    <li>
+                        @Html.ActionLink("Khách hàng", "Index", "Customers")
+                    </li>
+                    <li>
+                        @Html.ActionLink("Đơn hàng", "Index", "Orders")
+                    </li>
+                    <li>
+                        @Html.ActionLink("Tài khoản", "Index", "Users")
+                    </li>
                 </ul>
             </div>
-        </div>
-    </nav>
-    <div class="container body-content">
-        @RenderBody()
-        <hr />
-        <footer>
-            <p>&copy; @DateTime.Now.Year - ToyStore</p>
-            <h4>Contact</h4>
-            <p>Nguyễn Lê Minh Khang _ 25DH110096</p>
-            <p>Nguyễn lê quốc bảo _ 25DH110940</p>
-            <p>Nguyễn Đức Kiên _ 25DH110412</p>
-            <p>Đỗ Thế Thành Danh _ 25DH110096</p>
+        </nav>
+
+        <main class="admin-main">
+            @RenderBody()
+        </main>
+        <footer class="admin-footer">
+            <div class="footer-left">
+                <p>&copy; @DateTime.Now.Year - ToyStore</p>
+            </div>
+            <div class="footer-right">
+                <h4>Contact</h4>
+                <p> Nguyễn Lê Minh Khang _ 25DH110096</p>
+
+                <p>Nguyễn Lê Quốc Bảo _ 25DH110940</p>
+
+                <p>Nguyễn Đức Kiên _ 25DH110412</p>
+
+                <p>Đỗ Thế Thành Danh _ 25DH190005</p>
+            </div>
         </footer>
     </div>
-
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
     @RenderSection("scripts", required: false)

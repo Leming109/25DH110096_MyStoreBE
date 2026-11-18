@@ -1,28 +1,106 @@
-﻿@model _25DH110096_MyStoreBE.Models.Product
+﻿
+@model _25DH110096_MyStoreBE.Models.Product
 
 @{
-    ViewBag.Title = "Edit";
+    ViewBag.Title = "Cập nhật hàng hóa";
     Layout = "~/Areas/Admin/Views/Shared/_AdminsLayout.cshtml";
-
 }
 
-<h2 class="bg-success">CẬP NHẬT SẢN PHẨM</h2>
+<style>
+    .product-edit {
+        max-width: 850px;
+        margin: 20px auto;
+        padding: 25px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+    }
 
-@using (Html.BeginForm("Edit", "Products", FormMethod.Post, new { enctype = "multipart/form-data" }))
-{
-    @Html.AntiForgeryToken()
+        .product-edit h2 {
+            color: #b72e3c;
+            font-size: 23px;
+            font-weight: bold;
+            margin-bottom: 25px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #b72e3c;
+        }
 
-    <div class="form-horizontal">
-        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    .edit-actions {
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+    }
+
+    .btn-save {
+        background: #b72e3c;
+        color: white;
+        border: none;
+        padding: 9px 18px;
+        border-radius: 4px;
+    }
+
+        .btn-save:hover {
+            background: #922431;
+            color: white;
+        }
+
+    .btn-back {
+        display: inline-block;
+        padding: 9px 18px;
+        background: #eee;
+        color: #333;
+        text-decoration: none;
+        border-radius: 4px;
+        margin-left: 5px;
+    }
+
+        .btn-back:hover {
+            background: #ddd;
+            color: #333;
+            text-decoration: none;
+        }
+</style>
+
+<div class="product-edit">
+
+    <h2>CẬP NHẬT HÀNG HÓA</h2>
+
+    @using (Html.BeginForm("Edit", "Products", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
         @Html.HiddenFor(model => model.ProductID)
 
-        @Html.Partial("PartialView_Products", Model)
+        <div class="form-horizontal">
 
-        <div class="form-group">
-            <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Thêm Mới" class="btn btn-default" />
-                @Html.ActionLink("Quay lại trang", "Index", null, new { @class = "btn btn-primary" })
+            @Html.ValidationSummary(
+                     true,
+                     "",
+                     new { @class = "text-danger" }
+                 )
+
+            @Html.Partial("PartialView_Products", Model)
+
+            <div class="edit-actions">
+
+                <button type="submit" class="btn-save">
+                    Lưu thay đổi
+                </button>
+
+                @Html.ActionLink(
+                         "Quay lại",
+                         "Index",
+                         null,
+                         new { @class = "btn-back" }
+                     )
+
             </div>
+
         </div>
-    </div>
+    }
+
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/jqueryval")
 }

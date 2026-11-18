@@ -1,33 +1,151 @@
-﻿@model _25DH110096_MyStoreBE.Models.Product
+﻿
+@model _25DH110096_MyStoreBE.Models.Product
 
-<head>
-    <style>
-        img {
-            height: 250px;
+@using System.Globalization
+
+@{
+    string defaultImage = Url.Content("~/Content/images/default_img.png");
+
+    string imageUrl = defaultImage;
+
+    if (Model != null && !String.IsNullOrWhiteSpace(Model.ProductImage))
+    {
+        imageUrl = Model.ProductImage.StartsWith("~/")
+            ? Url.Content(Model.ProductImage)
+            : Model.ProductImage;
+    }
+}
+
+<style>
+    .product-info {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 25px;
+        padding: 20px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+    }
+
+    .product-info-image {
+        flex: 0 0 250px;
+        text-align: center;
+    }
+
+        .product-info-image img {
+            width: 100%;
             max-width: 250px;
+            height: 250px;
+            object-fit: contain;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            padding: 5px;
         }
-    </style>
-</head>
 
-<div class="container-fluid">
-    <div class="div-horizontal bg-info">
-        <div class="col-md-3">
-            <img src="@Html.DisplayFor(model => model.ProductImage)" />
-        </div>
-        <div class="col-md-9 bg-info">
-            <dl class="dl-horizontal">
-                <dt>Tên Sản Phẩm</dt>
-                <dd>@Html.DisplayFor(model => model.ProductName)</dd>
+    .product-info-content {
+        flex: 1;
+        min-width: 250px;
+    }
 
-                <dt>Mô Tả</dt>
-                <dd>@Html.DisplayFor(model => model.ProductDecription)</dd>
+        .product-info-content h3 {
+            font-size: 22px;
+            font-weight: bold;
+            color: #333;
+            margin-top: 5px;
+            margin-bottom: 20px;
+        }
 
-                <dt>Đơn Giá</dt>
-                <dd>@Html.DisplayFor(model => model.ProductPrice)</dd>
+    .product-info-row {
+        padding: 12px 0;
+        border-bottom: 1px solid #eee;
+    }
 
-                <dt>Danh Mục</dt>
-                <dd>@Html.DisplayFor(model => model.Category.CategoryName)</dd>
-            </dl>
-        </div>
+    .product-info-label {
+        display: inline-block;
+        width: 130px;
+        font-weight: bold;
+        color: #555;
+        vertical-align: top;
+    }
+
+    .product-info-value {
+        color: #333;
+    }
+
+    .product-info-price {
+        color: #b72e3c;
+        font-size: 19px;
+        font-weight: bold;
+    }
+
+    @@media (max-width: 600px) {
+        .product-info {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .product-info-image {
+            width: 100%;
+        }
+
+        .product-info-content {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="product-info">
+
+    <div class="product-info-image">
+
+        <img src="@imageUrl"
+             alt="@Model.ProductName"
+             onerror="this.onerror=null;this.src='@defaultImage';" />
     </div>
+
+    <div class="product-info-content">
+
+        <h3>@Model.ProductName</h3>
+
+        <div class="product-info-row">
+            <span class="product-info-label">Mã sản phẩm:</span>
+            <span class="product-info-value">
+                @Model.ProductID
+            </span>
+        </div>
+
+        <div class="product-info-row">
+            <span class="product-info-label">Tên sản phẩm:</span>
+            <span class="product-info-value">
+                @Model.ProductName
+            </span>
+        </div>
+
+        <div class="product-info-row">
+            <span class="product-info-label">Mô tả:</span>
+            <span class="product-info-value">
+                @(String.IsNullOrWhiteSpace(Model.ProductDecription)
+                    ? "Chưa có mô tả"
+                    : Model.ProductDecription)
+            </span>
+        </div>
+
+        <div class="product-info-row">
+            <span class="product-info-label">Đơn giá:</span>
+            <span class="product-info-price">
+                @Model.ProductPrice.ToString("N0", new CultureInfo("vi-VN")) ₫
+            </span>
+        </div>
+
+        <div class="product-info-row">
+            <span class="product-info-label">Danh mục:</span>
+            <span class="product-info-value">
+                @(Model.Category != null
+                    ? Model.Category.CategoryName
+                    : "Chưa phân loại")
+            </span>
+        </div>
+
+    </div>
+
 </div>

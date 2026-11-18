@@ -1,32 +1,147 @@
-﻿@model _25DH110096_MyStoreBE.Models.Category
+﻿
+@model _25DH110096_MyStoreBE.Models.Category
 
 @{
-    ViewBag.Title = "Delete";
+    ViewBag.Title = "Xóa danh mục";
     Layout = "~/Areas/Admin/Views/Shared/_AdminsLayout.cshtml";
 
+    int productCount = ViewBag.ProductCount ?? 0;
+    string deleteError = ViewBag.DeleteError as string;
 }
 
-<h2 class="bg-success">XÓA DANH MỤC</h2>
+<style>
+    .delete-container {
+        max-width: 650px;
+        margin: 35px auto;
+        padding: 25px;
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        box-shadow: 0 3px 12px rgba(0,0,0,.05);
+    }
 
-<h4 class="alert-danger">Bạn có chắc muốn xóa danh mục nay ?</h4>
-@using (Html.BeginForm())
-{
-    @Html.AntiForgeryToken()
-    <div class="form-horizontal">
-        <div class="form-group row mb-3">
-            <div class="col-md-2 text-md-end"><label class="col-form-label">Tên Danh Mục : </label></div>
-            <div class="col-md-10 ">
-                @* hiển thị giá trị Category *@
-                @Html.DisplayFor(model => model.CategoryName)
-            </div>
+    .delete-title {
+        color: #b72e3c;
+        font-size: 23px;
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
 
+    .delete-info {
+        padding: 18px;
+        background: #f7f7f7;
+        border-radius: 6px;
+        margin-bottom: 20px;
+    }
 
-            <div class="row mb-3">
-                <div class="col-md-offset-2 col-md-10">
-                    <input type="submit" value="Xóa" class="btn btn-danger" />
-                    @Html.ActionLink("Quay lại trang", "Index", null, new { @class = "btn btn-primary" })
-                </div>
-            </div>
+        .delete-info p {
+            margin: 8px 0;
+            font-size: 15px;
+        }
+
+    .delete-warning {
+        padding: 15px;
+        background: #fff1f1;
+        border-left: 4px solid #b72e3c;
+        color: #a32634;
+        border-radius: 4px;
+        margin-bottom: 20px;
+    }
+
+    .btn-confirm-delete {
+        background: #b72e3c;
+        color: white;
+        border: none;
+        padding: 10px 18px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+        .btn-confirm-delete:hover {
+            background: #922431;
+        }
+
+    .btn-back {
+        display: inline-block;
+        padding: 10px 18px;
+        background: #eee;
+        color: #333;
+        border-radius: 5px;
+        text-decoration: none;
+        margin-left: 5px;
+    }
+
+        .btn-back:hover {
+            background: #ddd;
+            text-decoration: none;
+            color: #333;
+        }
+</style>
+
+<div class="delete-container">
+
+    <h2 class="delete-title">XÁC NHẬN XÓA DANH MỤC</h2>
+
+    @if (!String.IsNullOrEmpty(deleteError))
+    {
+        <div class="delete-warning">
+            @deleteError
         </div>
+    }
+
+    <div class="delete-info">
+
+        <p>
+            <strong>Mã danh mục:</strong>
+            @Model.CategoryID
+        </p>
+
+        <p>
+            <strong>Tên danh mục:</strong>
+            @Model.CategoryName
+        </p>
+
+        <p>
+            <strong>Số sản phẩm liên quan:</strong>
+            @productCount
+        </p>
+
     </div>
-}
+
+    @if (productCount > 0)
+    {
+        <div class="delete-warning">
+            <strong>Không thể xóa danh mục này!</strong>
+            <p>
+                Danh mục vẫn đang chứa @productCount sản phẩm.
+                Hãy chuyển các sản phẩm sang danh mục khác
+                trước khi thực hiện xóa.
+            </p>
+        </div>
+    }
+    else
+    {
+        <div class="delete-warning">
+            Bạn có chắc chắn muốn xóa danh mục này không?
+            Thao tác này không thể hoàn tác.
+        </div>
+
+        using (Html.BeginForm("Delete", "Categories",
+            new { id = Model.CategoryID }, FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+
+            <button type="submit" class="btn-confirm-delete">
+                Xác nhận xóa
+            </button>
+        }
+    }
+
+    @Html.ActionLink(
+            "Quay lại",
+            "Index",
+            null,
+            new { @class = "btn-back" }
+        )
+
+</div>

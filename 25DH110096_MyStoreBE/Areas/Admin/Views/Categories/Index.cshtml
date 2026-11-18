@@ -1,36 +1,363 @@
-﻿@model IEnumerable<_25DH110096_MyStoreBE.Models.Category>
+﻿
+@model IEnumerable<_25DH110096_MyStoreBE.Models.Category>
+
+@using System.Linq
 
 @{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Quản lý danh mục";
     Layout = "~/Areas/Admin/Views/Shared/_AdminsLayout.cshtml";
 
+    var categories = Model ?? Enumerable.Empty<_25DH110096_MyStoreBE.Models.Category>();
+
+    var totalCategories = categories.Count();
+
+    var totalProducts = categories.Sum(c =>
+        c.Products == null ? 0 : c.Products.Count
+    );
 }
 
-<h2 class="bg-success">DANH SÁCH DANH MỤC</h2>
-
-
-<table class="table bg-info col-md-12">
-    <tr>
-        <th class="bg-success col-md-8">
-            @*@Html.DisplayNameFor(model => model.CategoryName)*@
-            Tên Danh Mục
-        </th>
-        <th class="bg-success col-md-4"></th>
-    </tr>
-
-    @foreach (var item in Model)
-    {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.CategoryName)
-            </td>
-            <td>
-                @Html.ActionLink("Cập nhật", "Edit", new { id = item.CategoryID }, new { @class = "btn btn-primary btn-sm" })
-                @Html.ActionLink("Xóa", "Delete", new { id = item.CategoryID }, new { @class = "btn btn-primary btn-sm" })
-            </td>
-        </tr>
+<style>
+    .category-page {
+        max-width: 1200px;
+        margin: 10px auto 30px;
+        color: #333;
     }
-</table>
-<p>
-    @Html.ActionLink("Thêm mới", "Create", null, new { @class = "btn btn-primary" })
-</p>
+
+    /* Header */
+    .category-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .category-title h2 {
+        font-size: 25px;
+        font-weight: 700;
+        margin: 0 0 7px;
+        color: #292929;
+    }
+
+    .category-title p {
+        margin: 0;
+        color: #888;
+        font-size: 14px;
+    }
+
+    /* Nút thêm */
+    .btn-add-category {
+        display: inline-block;
+        background: #b72e3c;
+        color: white !important;
+        padding: 11px 18px;
+        border-radius: 5px;
+        text-decoration: none !important;
+        font-size: 14px;
+        font-weight: 600;
+        transition: .2s;
+    }
+
+        .btn-add-category:hover {
+            background: #922431;
+        }
+
+    /* Thống kê */
+    .category-stats {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        margin-bottom: 25px;
+    }
+
+    .category-stat-card {
+        background: #fff;
+        border: 1px solid #eee;
+        border-left: 4px solid #b72e3c;
+        border-radius: 6px;
+        padding: 18px 22px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.035);
+    }
+
+        .category-stat-card span {
+            display: block;
+            color: #777;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .category-stat-card strong {
+            display: block;
+            color: #333;
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+    /* Bảng danh mục */
+    .category-table-card {
+        background: white;
+        border: 1px solid #eee;
+        border-radius: 7px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,.04);
+    }
+
+    .category-table-heading {
+        padding: 17px 20px;
+        border-bottom: 1px solid #eee;
+    }
+
+        .category-table-heading h3 {
+            margin: 0;
+            font-size: 17px;
+            font-weight: 700;
+            color: #333;
+        }
+
+    .category-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0;
+    }
+
+        .category-table thead {
+            background: #f7f7f7;
+        }
+
+        .category-table th {
+            padding: 15px 18px;
+            color: #555;
+            font-size: 13px;
+            font-weight: 700;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .category-table td {
+            padding: 15px 18px;
+            font-size: 14px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+
+        .category-table tbody tr:hover {
+            background: #fffafa;
+        }
+
+        .category-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+    .category-id {
+        color: #888;
+        font-weight: 600;
+    }
+
+    .category-name {
+        color: #333;
+        font-weight: 600;
+    }
+
+    /* Số lượng sản phẩm */
+    .product-count {
+        display: inline-block;
+        min-width: 35px;
+        padding: 5px 11px;
+        color: #a52b38;
+        background: #fbecee;
+        border-radius: 20px;
+        text-align: center;
+        font-weight: 700;
+        font-size: 13px;
+    }
+
+    /* Nút thao tác */
+    .category-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-action {
+        display: inline-block;
+        padding: 7px 13px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: none !important;
+        transition: .2s;
+    }
+
+    .btn-edit {
+        color: #555 !important;
+        background: #eeeeee;
+    }
+
+        .btn-edit:hover {
+            color: white !important;
+            background: #555;
+        }
+
+    .btn-delete {
+        color: #b72e3c !important;
+        background: #fbecee;
+    }
+
+        .btn-delete:hover {
+            color: white !important;
+            background: #b72e3c;
+        }
+
+    /* Khi không có dữ liệu */
+    .category-empty {
+        padding: 35px !important;
+        text-align: center;
+        color: #999;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .category-page {
+            padding: 0 5px;
+        }
+
+        .category-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .category-stats {
+            grid-template-columns: 1fr;
+        }
+
+        .category-table-wrapper {
+            overflow-x: auto;
+        }
+
+        .category-table {
+            min-width: 600px;
+        }
+    }
+</style>
+
+<div class="category-page">
+
+    <!-- HEADER -->
+    <div class="category-header">
+
+        <div class="category-title">
+            <h2>QUẢN LÝ DANH MỤC</h2>
+            <p>Quản lý thông tin và số lượng hàng hóa theo danh mục.</p>
+        </div>
+
+        @Html.ActionLink(
+                 "+ Thêm danh mục",
+                 "Create",
+                 null,
+                 new { @class = "btn-add-category" }
+             )
+
+    </div>
+
+    <!-- THỐNG KÊ -->
+    <div class="category-stats">
+
+        <div class="category-stat-card">
+            <span>TỔNG SỐ DANH MỤC</span>
+            <strong>@totalCategories</strong>
+        </div>
+
+        <div class="category-stat-card">
+            <span>TỔNG SỐ HÀNG HÓA</span>
+            <strong>@totalProducts</strong>
+        </div>
+
+    </div>
+
+    <!-- BẢNG DANH MỤC -->
+    <div class="category-table-card">
+
+        <div class="category-table-heading">
+            <h3>Danh sách danh mục</h3>
+        </div>
+
+        <div class="category-table-wrapper">
+
+            <table class="category-table">
+
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">Mã danh mục</th>
+                        <th style="width: 35%;">Tên danh mục</th>
+                        <th style="width: 20%;">Số hàng hóa</th>
+                        <th style="width: 30%;">Thao tác</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @if (totalCategories > 0)
+                    {
+                        foreach (var item in categories)
+                        {
+                            <tr>
+
+                                <td>
+                                    <span class="category-id">
+                                        #@item.CategoryID
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="category-name">
+                                        @item.CategoryName
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="product-count">
+                                        @(item.Products == null ? 0 : item.Products.Count)
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <div class="category-actions">
+
+                                        @Html.ActionLink(
+                                                 "Sửa",
+                                                 "Edit",
+                                                 new { id = item.CategoryID },
+                                                 new { @class = "btn-action btn-edit" }
+                                             )
+
+                                        @Html.ActionLink(
+                                                 "Xóa",
+                                                 "Delete",
+                                                 new { id = item.CategoryID },
+                                                 new { @class = "btn-action btn-delete" }
+                                             )
+
+                                    </div>
+                                </td>
+
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="category-empty">
+                                Chưa có danh mục nào. Hãy thêm danh mục mới!
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>

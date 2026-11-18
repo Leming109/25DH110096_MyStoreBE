@@ -1,59 +1,124 @@
 ﻿@model _25DH110096_MyStoreBE.Models.ViewModel.HomeProductVM
+@using PagedList.Mvc
 
 @{
-    ViewBag.Title = "Customer Home Page";
+    ViewBag.Title = "Trang chủ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var categories = ViewBag.Categories as List<_25DH110096_MyStoreBE.Models.Category>;
 }
 
-@section Styles {
-    <link rel="stylesheet"
-          href="@Url.Content("~/Content/myStyle/CustomerHome.css")" />
-}
+<!-- Banner & Thanh Tìm Kiếm -->
+<div class="jumbotron text-center" style="background: linear-gradient(135deg, #d1e7dd, #badbcc); padding: 30px; border-radius: 10px; margin-top: 15px;">
+    <h2 style="color: #0f5132; font-weight: bold; margin-top: 0;">CHÀO MỪNG ĐẾN VỚI STORE KIÊN XIAOLIN</h2>
+    <p>Mua sắm sản phẩm chất lượng cao với giá ưu đãi nhất mỗi ngày!</p>
 
-<main class="customer-home">
-
-    @* Banner *@
-    <section class="container-fluid banner">
-        <div class="banner-container">
-            <h2>Chào Mừng Đến Trang Web E-commerce</h2>
-            <p>Mua sắm trực tuyến với hàng ngàn sản phẩm đa dạng và chất lượng</p>
-            <a href="#new-products" class="btnBanner">
-                Bắt đầu mua sắm
-            </a>
-        </div>
-    </section>
-
-    @* Search *@
-    <section class="container-fluid searchProd">
-        <h2>Tìm kiếm sản phẩm</h2>
-
-        @using (Html.BeginForm("Index", "Home", FormMethod.Get))
+    @using (Html.BeginForm("Index", "Home", FormMethod.Get, new { @style = "display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 15px;" }))
+    {
+        @Html.TextBoxFor(m => m.SearchString, new { @class = "form-control", placeholder = "Nhập tên sản phẩm, mô tả hoặc danh mục...", style = "width: 360px; max-width: 100%;" })
+        <button type="submit" class="btn btn-success">🔍 Tìm kiếm</button>
+        if (!string.IsNullOrEmpty(Model.SearchString) || ViewBag.SelectedCategory != null)
         {
-            <div class="form-group search-container">
-                @Html.TextBoxFor(m => m.SearchTerm, new
-                {
-                    @class = "search-input",
-                    placeholder = "Nhập tên, mô tả sản phẩm"
-                })
+            <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">Xem tất cả</a>
+        }
+    }
+</div>
 
-                <button type="submit" class="search-button">
-                    Tìm kiếm
-                </button>
+<!-- Thanh chọn nhanh Danh mục sản phẩm -->
+@if (categories != null && categories.Any())
+{
+    <div style="margin: 20px 0; text-align: center;">
+        <strong>Danh mục: </strong>
+        <a href="@Url.Action("Index", "Home")" class="btn btn-sm @(ViewBag.SelectedCategory == null ? "btn-success" : "btn-outline-secondary")" style="margin: 3px;">Tất cả</a>
+        @foreach (var cat in categories)
+        {
+            <a href="@Url.Action("Index", "Home", new { categoryId = cat.CategoryID })" class="btn btn-sm @(ViewBag.SelectedCategory == cat.CategoryName ? "btn-success" : "btn-outline-secondary")" style="margin: 3px;">
+                @cat.CategoryName
+            </a>
+        }
+    </div>
+}
+
+<!-- PHẦN 1: SẢN PHẨM NỔI BẬT -->
+@if (Model.FeaturedProducts != null && Model.FeaturedProducts.Any())
+{
+    <h3 class="bg-success text-white" style="padding: 10px 15px; border-radius: 5px;">🔥 SẢN PHẨM NỔI BẬT</h3>
+    <div class="row">
+        @foreach (var item in Model.FeaturedProducts)
+        {
+            <div class="col-md-3 col-sm-6 mb-4">
+                <div class="product-card" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <a href="@Url.Action("ProductDetails", "Home", new { id = item.ProductID })">
+                            <img src="@Url.Content(string.IsNullOrEmpty(item.ProductImage) ? "~/Content/images/default_img.png" : item.ProductImage)"
+                                 alt="@item.ProductName"
+                                 onerror="this.onerror=null;this.src='@Url.Content("~/Content/images/default_img.png")';"
+                                 style="width: 100%; height: 180px; object-fit: cover; border-radius: 6px; margin-bottom: 10px;" />
+                        </a>
+                        <h5 style="min-height: 48px; margin-top: 5px; font-size: 17px; line-height: 1.35;">
+                            <a href="@Url.Action("ProductDetails", "Home", new { id = item.ProductID })" style="color: #212529; text-decoration: none; font-weight: 600;">
+                                @item.ProductName
+                            </a>
+                        </h5>
+                        <p class="text-muted mb-1"><small>Danh mục: @item.Category.CategoryName</small></p>
+                    </div>
+                    <div>
+                        <p class="price-tag mb-2">@String.Format("{0:N0} VNĐ", item.ProductPrice)</p>
+                        <div>
+                            <a href="@Url.Action("ProductDetails", "Home", new { id = item.ProductID })" class="btn btn-info btn-sm text-white">Xem chi tiết</a>
+                            <a href="@Url.Action("AddToCart", "Cart", new { id = item.ProductID, quantity = 1 })" class="btn btn-success btn-sm">🛒 Thêm vào giỏ</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         }
-    </section>
+    </div>
+}
 
-    <hr />
+<hr />
 
-    @* Sản phẩm nổi bật *@
-    <section class="home-featured-products">
-        @Html.Partial("_PVFeatureProduct", Model)
-    </section>
+<!-- PHẦN 2: DANH SÁCH SẢN PHẨM MỚI (CÓ PHÂN TRANG) -->
+<h3 class="bg-info text-dark" style="padding: 10px 15px; border-radius: 5px;">
+    📦 @(ViewBag.SelectedCategory != null ? "DANH MỤC: " + ViewBag.SelectedCategory : "TẤT CẢ SẢN PHẨM")
+</h3>
 
-    <hr />
+@if (Model.NewProducts != null && Model.NewProducts.Any())
+{
+    <div class="row">
+        @foreach (var item in Model.NewProducts)
+        {
+            <div class="col-md-4 col-sm-6 mb-4">
+                <div class="product-card" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <a href="@Url.Action("ProductDetails", "Home", new { id = item.ProductID })">
+                            <img src="@Url.Content(string.IsNullOrEmpty(item.ProductImage) ? "~/Content/images/default_img.png" : item.ProductImage)"
+                                 alt="@item.ProductName"
+                                 onerror="this.onerror=null;this.src='@Url.Content("~/Content/images/default_img.png")';"
+                                 style="width: 100%; height: 200px; object-fit: cover; border-radius: 6px; margin-bottom: 10px;" />
+                        </a>
+                        <h5 style="min-height: 48px; margin-top: 5px; font-size: 18px; line-height: 1.35;">
+                            <a href="@Url.Action("ProductDetails", "Home", new { id = item.ProductID })" style="color: #212529; text-decoration: none; font-weight: 600;">
+                                @item.ProductName
+                            </a>
+                        </h5>
+                        <p class="text-muted mb-1">Loại: @item.Category.CategoryName | Đã bán: @item.OrderDetails.Count()</p>
+                    </div>
+                    <div>
+                        <p class="price-tag mb-2">@String.Format("{0:N0} VNĐ", item.ProductPrice)</p>
+                        <div>
+                            <a href="@Url.Action("ProductDetails", "Home", new { id = item.ProductID })" class="btn btn-primary btn-sm">Chi tiết</a>
+                            <a href="@Url.Action("AddToCart", "Cart", new { id = item.ProductID, quantity = 1 })" class="btn btn-success btn-sm">🛒 Mua ngay</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
 
-    @* Sản phẩm mới *@
-    <section class="home-new-products" id="new-products">
-        @Html.Partial("_PVNewProduct", Model)
-    </section>
-
-</main>
+    <div class="text-center mt-3">
+        @Html.PagedListPager(Model.NewProducts, page => Url.Action("Index", new { page, searchString = Model.SearchString, categoryId = ViewBag.SelectedCategoryId }))
+    </div>
+}
+else
+{
+    <div class="alert alert-warning">Không tìm thấy sản phẩm nào phù hợp với từ khóa của bạn.</div>
+}

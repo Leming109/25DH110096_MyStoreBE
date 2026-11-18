@@ -1,0 +1,172 @@
+﻿
+@model _25DH110096_MyStoreBE.Models.Product
+
+@using System.Globalization
+
+@{
+    string defaultImage = Url.Content("~/Content/images/default_img.png");
+    string imageUrl = defaultImage;
+
+    if (Model != null && !String.IsNullOrWhiteSpace(Model.ProductImage))
+    {
+        if (Model.ProductImage.StartsWith("~/"))
+        {
+            imageUrl = Url.Content(Model.ProductImage);
+        }
+        else if (Model.ProductImage.StartsWith("http://",
+            StringComparison.OrdinalIgnoreCase) ||
+            Model.ProductImage.StartsWith("https://",
+            StringComparison.OrdinalIgnoreCase))
+        {
+            imageUrl = Model.ProductImage;
+        }
+        else
+        {
+            imageUrl = Url.Content("~/" + Model.ProductImage.TrimStart('/'));
+        }
+    }
+}
+
+<style>
+    .shared-product-detail {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 30px;
+        padding: 20px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+    }
+
+    .shared-product-image {
+        flex: 0 0 280px;
+        text-align: center;
+    }
+
+        .shared-product-image img {
+            width: 100%;
+            max-width: 280px;
+            height: 280px;
+            object-fit: contain;
+            padding: 5px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+        }
+
+    .shared-product-content {
+        flex: 1;
+        min-width: 250px;
+    }
+
+    .shared-product-name {
+        font-size: 23px;
+        font-weight: bold;
+        color: #333;
+        margin: 5px 0 20px;
+    }
+
+    .shared-product-row {
+        padding: 12px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .shared-product-label {
+        display: inline-block;
+        width: 130px;
+        font-weight: bold;
+        color: #555;
+        vertical-align: top;
+    }
+
+    .shared-product-value {
+        color: #333;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+    }
+
+    .shared-product-description {
+        white-space: pre-line;
+    }
+
+    .shared-product-price {
+        color: #b72e3c;
+        font-size: 21px;
+        font-weight: bold;
+    }
+
+    @@media (max-width: 600px) {
+        .shared-product-detail {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .shared-product-image,
+        .shared-product-content {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="shared-product-detail">
+
+    <!-- HÌNH ẢNH SẢN PHẨM -->
+    <div class="shared-product-image">
+
+        <img src="@imageUrl"
+             alt="@Model.ProductName"
+             onerror="this.onerror=null;this.src='@defaultImage';" />
+
+    </div>
+
+    <!-- THÔNG TIN SẢN PHẨM -->
+    <div class="shared-product-content">
+
+        <h3 class="shared-product-name">
+            @Model.ProductName
+        </h3>
+
+        <div class="shared-product-row">
+            <span class="shared-product-label">Mã sản phẩm:</span>
+            <span class="shared-product-value">
+                @Model.ProductID
+            </span>
+        </div>
+
+        <div class="shared-product-row">
+            <span class="shared-product-label">Tên sản phẩm:</span>
+            <span class="shared-product-value">
+                @Model.ProductName
+            </span>
+        </div>
+
+        <div class="shared-product-row">
+            <span class="shared-product-label">Mô tả:</span>
+            <span class="shared-product-value shared-product-description">
+                @(String.IsNullOrWhiteSpace(Model.ProductDecription)
+                    ? "Chưa có mô tả"
+                    : Model.ProductDecription)
+            </span>
+        </div>
+
+        <div class="shared-product-row">
+            <span class="shared-product-label">Đơn giá:</span>
+            <span class="shared-product-price">
+                @Model.ProductPrice.ToString(
+                         "N0",
+                         CultureInfo.GetCultureInfo("vi-VN")
+                     ) ₫
+            </span>
+        </div>
+
+        <div class="shared-product-row">
+            <span class="shared-product-label">Danh mục:</span>
+            <span class="shared-product-value">
+                @(Model.Category != null
+                    ? Model.Category.CategoryName
+                    : "Chưa phân loại")
+            </span>
+        </div>
+
+    </div>
+
+</div>

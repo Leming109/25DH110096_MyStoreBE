@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
-using System.Web;
 using System.Web.Mvc;
+using PagedList;
 using _25DH110096_MyStoreBE.Models;
 
 namespace _25DH110096_MyStoreBE.Areas.Admin.Controllers
@@ -15,110 +13,108 @@ namespace _25DH110096_MyStoreBE.Areas.Admin.Controllers
         private TH_BE_2026Entities db = new TH_BE_2026Entities();
 
         // GET: Admin/Orders
-        public ActionResult Index()
+        // Danh sách đơn hàng, tìm kiếm và lọc
+        public ActionResult Index(
+            string customerName,
+            string paymentStatus,
+            DateTime? orderDate,
+            int? page)
         {
-            var orders = db.Orders.Include(o => o.Customer);
-            return View(orders.ToList());
+            var orders = db.Orders
+                .Include(o => o.Customer)
+                .AsNoTracking()
+                .AsQueryable();
+
+            // Tìm kiếm theo tên khách hàng
+            if (!String.IsNullOrWhiteSpace(customerName))
+            {
+                customerName = customerName.Trim();
+
+                orders = orders.Where(o =>
+                    o.Customer != null &&
+                    o.Customer.CustomerName.Contains(customerName));
+            }
+
+            // Lọc trạng thái thanh toán
+            if (!String.IsNullOrWhiteSpace(paymentStatus))
+            {
+                orders = orders.Where(o =>
+                    o.PaymentStatus == paymentStatus);
+            }
+
+            // Lọc theo ngày đặt hàng
+            if (orderDate.HasValue)
+            {
+                DateTime startDate = orderDate.Value.Date;
+                DateTime endDate = startDate.AddDays(1);
+
+                orders = orders.Where(o =>
+                    o.OrderDate >= startDate &&
+                    o.OrderDate < endDate);
+            }
+
+            // Lấy danh sách trạng thái đang có trong Database
+            var paymentStatuses = db.Orders
+                .Select(o => o.PaymentStatus)
+                .Distinct()
+                .ToList()
+                .Where(s => !String.IsNullOrWhiteSpace(s))
+                .OrderBy(s => s)
+                .ToList();
+
+            ViewBag.PaymentStatuses =
+                new SelectList(paymentStatuses, paymentStatus);
+
+            ViewBag.CustomerName = customerName;
+            ViewBag.SelectedPaymentStatus = paymentStatus;
+
+            ViewBag.OrderDate = orderDate.HasValue
+                ? orderDate.Value.ToString("yyyy-MM-dd")
+                : "";
+
+            // Sắp xếp đơn hàng mới nhất lên trước
+            orders = orders
+                .OrderByDescending(o => o.OrderDate)
+                .ThenByDescending(o => o.OrderID);
+
+            // Phân trang
+            int pageNumber = page ?? 1;
+
+            if (pageNumber < 1)
+            {
+                pageNumber = 1;
+            }
+
+            int pageSize = 5;
+
+            return View(orders.ToPagedList(pageNumber, pageSize));
         }
 
+
         // GET: Admin/Orders/Details/5
+        // Xem hóa đơn chi tiết
         public ActionResult Details(int? id)
         {
             if (id == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return new HttpStatusCodeResult(
+                    HttpStatusCode.BadRequest);
             }
-            Order order = db.Orders.Find(id);
+
+            Order order = db.Orders
+                .Include(o => o.Customer)
+                .Include(o => o.OrderDetails.Select(d => d.Product))
+                .AsNoTracking()
+                .SingleOrDefault(o => o.OrderID == id.Value);
+
             if (order == null)
             {
                 return HttpNotFound();
             }
+
             return View(order);
         }
 
-        // GET: Admin/Orders/Create
-        public ActionResult Create()
-        {
-            ViewBag.CustomerID = new SelectList(db.Customers, "CustomerID", "CustomerName");
-            return View();
-        }
-
-        // POST: Admin/Orders/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "OrderID,CustomerID,OrderDate,TotalAmount,PaymentStatus,AddressDelivery")] Order order)
-        {
-            if (ModelState.IsValid)
-            {
-                db.Orders.Add(order);
-                db.SaveChanges();
-                return RedirectToAction("Index");
-            }
-
-            ViewBag.CustomerID = new SelectList(db.Customers, "CustomerID", "CustomerName", order.CustomerID);
-            return View(order);
-        }
-
-        // GET: Admin/Orders/Edit/5
-        public ActionResult Edit(int? id)
-        {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Order order = db.Orders.Find(id);
-            if (order == null)
-            {
-                return HttpNotFound();
-            }
-            ViewBag.CustomerID = new SelectList(db.Customers, "CustomerID", "CustomerName", order.CustomerID);
-            return View(order);
-        }
-
-        // POST: Admin/Orders/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "OrderID,CustomerID,OrderDate,TotalAmount,PaymentStatus,AddressDelivery")] Order order)
-        {
-            if (ModelState.IsValid)
-            {
-                db.Entry(order).State = EntityState.Modified;
-                db.SaveChanges();
-                return RedirectToAction("Index");
-            }
-            ViewBag.CustomerID = new SelectList(db.Customers, "CustomerID", "CustomerName", order.CustomerID);
-            return View(order);
-        }
-
-        // GET: Admin/Orders/Delete/5
-        public ActionResult Delete(int? id)
-        {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Order order = db.Orders.Find(id);
-            if (order == null)
-            {
-                return HttpNotFound();
-            }
-            return View(order);
-        }
-
-        // POST: Admin/Orders/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(int id)
-        {
-            Order order = db.Orders.Find(id);
-            db.Orders.Remove(order);
-            db.SaveChanges();
-            return RedirectToAction("Index");
-        }
 
         protected override void Dispose(bool disposing)
         {
@@ -126,6 +122,7 @@ namespace _25DH110096_MyStoreBE.Areas.Admin.Controllers
             {
                 db.Dispose();
             }
+
             base.Dispose(disposing);
         }
     }

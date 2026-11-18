@@ -65,11 +65,16 @@ namespace _25DH110096_MyStoreBE.Areas.Admin.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Product product = db.Products.Find(id);
+
+            Product product = db.Products
+                .Include(p => p.Category)
+                .SingleOrDefault(p => p.ProductID == id.Value);
+
             if (product == null)
             {
                 return HttpNotFound();
             }
+
             return View(product);
         }
 
@@ -83,27 +88,32 @@ namespace _25DH110096_MyStoreBE.Areas.Admin.Controllers
         // POST: Admin/Products/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to, for 
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "ProductID,CategoryID,ProductName,ProductDecription,ProductPrice,ProductImage")] Product product)
+        public ActionResult Create(
+            [Bind(Include = "CategoryID,ProductName,ProductDecription,ProductPrice,ProductImage")]Product product)
         {
+            if (String.IsNullOrWhiteSpace(product.ProductImage))
+            {
+                product.ProductImage = "~/Content/images/default_img.png";
+            }
             if (ModelState.IsValid)
             {
-                if (product.UploadImg != null)
-                {
-                    string filename = Path.GetFileName(product.UploadImg.FileName);
-                    string savePath = "~/Content/images";
-                    product.ProductImage = savePath + filename;
-                    product.UploadImg.SaveAs(Path.Combine(Server.MapPath(savePath), filename));
-                }
                 db.Products.Add(product);
                 db.SaveChanges();
+
                 return RedirectToAction("Index");
             }
-
-            ViewBag.CategoryID = new SelectList(db.Categories, "CategoryID", "CategoryName", product.CategoryID);
+            ViewBag.CategoryID = new SelectList(
+                db.Categories,
+                "CategoryID",
+                "CategoryName",
+                product.CategoryID
+            );
             return View(product);
         }
+
 
         // GET: Admin/Products/Edit/5
         public ActionResult Edit(int? id)
@@ -124,25 +134,45 @@ namespace _25DH110096_MyStoreBE.Areas.Admin.Controllers
         // POST: Admin/Products/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to, for 
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "ProductID,CategoryID,ProductName,ProductDecription,ProductPrice,ProductImage")] Product product)
+        public ActionResult Edit([Bind(Include = "ProductID,CategoryID,ProductName,ProductDecription,ProductPrice,ProductImage")]Product input)
         {
+            Product product = db.Products.Find(input.ProductID);
+
+            if (product == null)
+            {
+                return HttpNotFound();
+            }
+
+            // Nếu không nhập link ảnh mới thì giữ ảnh cũ
+            if (String.IsNullOrWhiteSpace(input.ProductImage))
+            {
+                input.ProductImage = product.ProductImage;
+            }
+
             if (ModelState.IsValid)
             {
-                if (product.UploadImg != null)
-                {
-                    string filename = Path.GetFileName(product.UploadImg.FileName);
-                    string savePath = "~/Content/images";
-                    product.ProductImage = savePath + filename;
-                    product.UploadImg.SaveAs(Path.Combine(Server.MapPath(savePath), filename));
-                }
-                db.Entry(product).State = EntityState.Modified;
+                product.CategoryID = input.CategoryID;
+                product.ProductName = input.ProductName;
+                product.ProductDecription = input.ProductDecription;
+                product.ProductPrice = input.ProductPrice;
+                product.ProductImage = input.ProductImage;
+
                 db.SaveChanges();
+
                 return RedirectToAction("Index");
             }
-            ViewBag.CategoryID = new SelectList(db.Categories, "CategoryID", "CategoryName", product.CategoryID);
-            return View(product);
+
+            ViewBag.CategoryID = new SelectList(
+                db.Categories,
+                "CategoryID",
+                "CategoryName",
+                input.CategoryID
+            );
+
+            return View(input);
         }
 
         // GET: Admin/Products/Delete/5

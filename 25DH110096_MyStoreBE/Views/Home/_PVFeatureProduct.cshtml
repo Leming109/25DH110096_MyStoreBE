@@ -1,37 +1,77 @@
 ﻿@model _25DH110096_MyStoreBE.Models.ViewModel.HomeProductVM
-<link rel="stylesheet" type="text/css" href="~/Content/myStyle/CustomerHome.css" />
 
-@* Hiển thị sản phẩm *@
+@using System.Linq
+
+@* Hiển thị sản phẩm nổi bật *@
 @if (Model.FeaturedProducts != null && Model.FeaturedProducts.Any())
 {
     <section class="container-fluid featureProd">
+
         <h2>Sản phẩm nổi bật</h2>
+
         <div class="feature-container">
+
             @foreach (var product in Model.FeaturedProducts)
             {
                 <div class="fproduct-item">
-                    <div>
-                        <a href="@Url.Action("ProductDetail", "Home", new { id = product.ProductID})">
-                            <img src="@Html.DisplayFor(modelItem => product.ProductImage)" />
+
+                    @* Hình ảnh sản phẩm *@
+                    <div class="fproduct-image">
+
+                        <a href="@Url.Action("ProductDetail", "Home", new { id = product.ProductID })">
+
+                            @if (!string.IsNullOrWhiteSpace(product.ProductImage))
+                            {
+                                <img src="@Url.Content(product.ProductImage)"
+                                     alt="@product.ProductName"
+                                     loading="lazy"
+                                     onerror="this.onerror=null; this.style.display='none'; this.parentElement.classList.add('image-missing');" />
+                            }
+                            else
+                            {
+                                <div class="image-placeholder">
+                                    <i class="fas fa-image"></i>
+                                    <span>Chưa có hình ảnh</span>
+                                </div>
+                            }
+
                         </a>
+
                     </div>
-                    <div>
+
+                    @* Thông tin sản phẩm *@
+                    <div class="fproduct-info">
+
                         <p class="prodPrice">
                             @Html.DisplayFor(modelItem => product.ProductPrice)
                         </p>
+
                         <p class="prodName">
                             @Html.DisplayFor(modelItem => product.ProductName)
                         </p>
-                        <p class="prodCate">
-                            @Html.DisplayFor(modelItem => product.Category.CategoryName)
-                        </p>
+
+                        @if (product.Category != null)
+                        {
+                            <p class="prodCate">
+                                @Html.DisplayFor(modelItem => product.Category.CategoryName)
+                            </p>
+                        }
+
                         <p class="prodSale">
-                            Đã bán: &nbsp; @Html.DisplayFor(modelItem => product.OrderDetails.Count)
+                            Đã bán:
+                            @(product.OrderDetails != null
+                                ? product.OrderDetails.Count
+                                : 0)
                         </p>
+
                     </div>
+
                 </div>
             }
+
         </div>
+
     </section>
+
     <hr />
 }

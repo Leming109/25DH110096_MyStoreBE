@@ -1,18 +1,81 @@
 ﻿@model _25DH110096_MyStoreBE.Models.Product
 
 @{
-    ViewBag.Title = "Details";
+    ViewBag.Title = "Chi tiết hàng hóa";
     Layout = "~/Areas/Admin/Views/Shared/_AdminsLayout.cshtml";
-
 }
 
-<h2 class="bg-success">Chi Tiết Sản Phẩm</h2>
+<style>
+    .product-details {
+        max-width: 1000px;
+        margin: 20px auto;
+        padding: 20px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+    }
 
-@Html.Partial("PVProductsInfo", Model)
+        .product-details h2 {
+            color: #b72e3c;
+            font-size: 23px;
+            font-weight: bold;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #b72e3c;
+        }
 
-<div class="form-horizontal">
-    <div class="col-md-offset-3 col-md-9">
-        @Html.ActionLink("Sửa", "Edit", new { id = Model.ProductID }, new { @class = "btn btn-primary" })
-        @Html.ActionLink("Quay lại danh sách", "Index", new { @class = "btn btn-primary" })
+    .product-details-actions {
+        margin-top: 25px;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+    }
+
+    .btn-edit-product {
+        display: inline-block;
+        padding: 9px 18px;
+        background: #b72e3c;
+        color: white !important;
+        border-radius: 4px;
+        text-decoration: none !important;
+        margin-right: 5px;
+    }
+
+        .btn-edit-product:hover {
+            background: #922431;
+        }
+
+    .btn-back-product {
+        display: inline-block;
+        padding: 9px 18px;
+        background: #eee;
+        color: #333 !important;
+        border-radius: 4px;
+        text-decoration: none !important;
+    }
+</style>
+
+<div class="product-details">
+
+    <h2>CHI TIẾT HÀNG HÓA</h2>
+
+    @Html.Partial("~/Views/Shared/_ProductDetail.cshtml",Model)
+
+    <div class="product-details-actions">
+
+        @Html.ActionLink(
+                           "Cập nhật",
+                           "Edit",
+                           new { id = Model.ProductID },
+                           new { @class = "btn-edit-product" }
+                       )
+
+        @Html.ActionLink(
+                           "Quay lại danh sách",
+                           "Index",
+                           null,
+                           new { @class = "btn-back-product" }
+                       )
+
     </div>
+
 </div>

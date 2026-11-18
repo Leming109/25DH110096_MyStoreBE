@@ -1,331 +1,108 @@
-﻿
-@{
-    // Lấy giỏ hàng từ Session
-    var cart = Session["Cart"] as
-        _25DH110096_MyStoreBE.Models.ViewModel.Cart;
-
-    // Khởi tạo thông tin menu tài khoản
-    var pmmodel = new
-        _25DH110096_MyStoreBE.Models.ViewModel.PersonalMenuVM
-    {
-        IsLoggedIn = User.Identity.IsAuthenticated,
-        Username = User.Identity.IsAuthenticated
-            ? User.Identity.Name
-            : string.Empty
-    };
-
-    // Cập nhật số lượng sản phẩm trong giỏ hàng
-    if (cart != null && cart.Items != null)
-    {
-        pmmodel.CartCount = cart.Items.Count();
-    }
+﻿@{
+    var cart = Session["Cart"] as _25DH110096_MyStoreBE.Models.ViewModel.Cart;
+    int cartCount = cart != null ? cart.Items.Sum(i => i.Quantity) : 0;
 }
-
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>@ViewBag.Title - My ASP.NET Application</title>
-
+    <title>@ViewBag.Title - Store Kiên XiaoLin</title>
     @Styles.Render("~/Content/css")
-
     @Scripts.Render("~/bundles/modernizr")
-
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
-
     <style>
-        /* ================= NAVBAR ================= */
-
         body {
-            padding-top: 100px;
+            padding-top: 70px;
+            background-color: #f8f9fa;
         }
 
-        .navbar.navbar-fixed-top {
-            background-color: #fff;
-            border-bottom: 1px solid #ddd;
-        }
-
-        /* Thanh thông báo Free Ship */
-        .promo-bar {
-            background-color: lightgreen;
-            text-align: center;
-            padding: 1px 10px;
-        }
-
-            .promo-bar h4 {
-                color: green;
-                margin: 7px 0;
-                font-weight: bold;
-            }
-
-        /* Logo */
-        .navbar-brand img {
-            max-height: 30px;
-            width: auto;
-        }
-
-        /* Menu */
-        .navbar .navbar-nav {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-            .navbar .navbar-nav > li {
-                position: relative;
-            }
-
-                .navbar .navbar-nav > li > a {
-                    cursor: pointer;
-                }
-
-            /* Icon menu */
-            .navbar .navbar-nav i {
-                margin-right: 5px;
-            }
-
-        /* ================= DROPDOWN ================= */
-
-        .navbar .dropdown-content {
-            display: none;
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background-color: #fff;
-            min-width: 190px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-            border: 1px solid #eee;
-            border-radius: 5px;
-            z-index: 1000;
-        }
-
-            .navbar .dropdown-content a {
-                color: #333;
-                padding: 12px 15px;
-                text-decoration: none;
-                display: block;
-                white-space: nowrap;
-            }
-
-                .navbar .dropdown-content a:hover {
-                    background-color: #f1f1f1;
-                    color: #c62828;
-                }
-
-        .navbar .dropdown:hover .dropdown-content,
-        .navbar .dropdown:focus-within .dropdown-content {
-            display: block;
-        }
-
-        /* ================= CART ================= */
-
-        .cart-link {
-            position: relative;
-        }
-
-        .cart-badge {
-            display: inline-block;
-            background-color: #c62828;
-            color: white;
-            font-size: 11px;
+        .badge-cart {
+            background-color: #ffc107;
+            color: #000;
             font-weight: bold;
-            min-width: 18px;
-            height: 18px;
-            line-height: 18px;
+        }
+
+        .product-card {
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
             text-align: center;
-            border-radius: 50%;
-            margin-left: 3px;
+            transition: 0.2s;
         }
 
-        /* Nội dung các View */
-        .body-content {
-            padding-bottom: 30px;
+            .product-card:hover {
+                box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+                transform: translateY(-3px);
+            }
+
+        .price-tag {
+            color: #d9534f;
+            font-size: 18px;
+            font-weight: bold;
         }
 
-        /* Responsive */
-        @@media (max-width: 767px) {
-            body {
-                padding-top: 90px;
-            }
-
-            .promo-bar h4 {
-                font-size: 13px;
-            }
-
-            .navbar .dropdown-content {
-                left: 0;
-                right: auto;
-            }
+        footer {
+            background: #212529;
+            color: #fff;
+            padding: 25px 0;
+            margin-top: 40px;
         }
     </style>
-
-    @* CSS riêng của từng View *@
-    @RenderSection("Styles", required: false)
-
 </head>
-
 <body>
+    <!-- THANH MENU CỐ ĐỊNH PHÍA TRÊN (GIỐNG NHAU TOÀN HỆ THỐNG) -->
+    <div style="background-color: #198754; position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center; height: 60px;">
 
-    @* ================= NAVBAR ================= *@
-
-    <div class="navbar navbar-default navbar-fixed-top">
-
-        @* Thanh thông báo *@
-        <div class="promo-bar">
-            <div class="container">
-                <h4>
-                    Free ship đơn từ 40k, giảm nhiều hơn cùng
-                    <span style="font-weight: bolder; font-style: italic;">
-                        <span style="color: blue;">FREESHIP</span>EXTRA
-                    </span>
-                </h4>
-            </div>
-        </div>
-
-        <div class="container">
-
-            @* Logo *@
-            <div class="navbar-header">
-
-                <button type="button"
-                        class="navbar-toggle"
-                        data-toggle="collapse"
-                        data-target=".navbar-collapse"
-                        title="more options">
-
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-
-                </button>
-
-                <a href="@Url.Action("Index", "Home")"
-                   class="navbar-brand">
-
-                    <img src="@Url.Content("~/Images/logo.PNG")"
-                         alt="My Store Logo" />
-
+            <!-- Menu bên trái -->
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <a href="@Url.Action("Index", "Home", new { area = "" })" style="color: #ffffff; font-size: 18px; font-weight: bold; text-decoration: none;">
+                    🛒 STORE KIÊN XIAOLIN
                 </a>
-
+                <a href="@Url.Action("Index", "Home", new { area = "" })" style="color: #ffffff; text-decoration: none; font-weight: 500;">Trang chủ</a>
+                <a href="@Url.Action("Index", "Cart", new { area = "" })" style="color: #ffffff; text-decoration: none; font-weight: 500;">
+                    Giỏ hàng <span class="badge badge-cart" style="background: #ffc107; color: #000; padding: 2px 6px; border-radius: 10px;">@cartCount</span>
+                </a>
+                <!-- Nút kiểm tra lại đơn hàng sau khi đặt -->
+                <a href="@Url.Action("MyOrders", "Order", new { area = "" })" style="color: #ffc107; text-decoration: none; font-weight: bold;">
+                    📦 Đơn hàng của tôi (Lịch sử mua hàng)
+                </a>
             </div>
 
-            @* Các chức năng Navbar *@
-            <div class="navbar-collapse collapse">
-
-                <ul class="nav navbar-nav navbar-right">
-
-                    @* Trang chủ *@
-                    <li>
-                        <a href="@Url.Action("Index", "Home")">
-                            <i class="fas fa-home"></i>
-                            Trang chủ
-                        </a>
-                    </li>
-
-                    @* Tài khoản *@
-                    <li class="dropdown">
-
-                        <a href="javascript:void(0)"
-                           id="account-name">
-
-                            <i class="fas fa-user"></i>
-
-                            @if (pmmodel.IsLoggedIn)
-                            {
-                                <span>Hello, @pmmodel.Username</span>
-                            }
-                            else
-                            {
-                                <span>Tài khoản</span>
-                            }
-
-                            <i class="fas fa-angle-down"></i>
-
-                        </a>
-
-                        <div class="dropdown-content">
-
-                            @if (pmmodel.IsLoggedIn)
-                            {
-                                <a href="@Url.Action("Profile", "Account")">
-                                    <i class="fas fa-user-circle"></i>
-                                    Thông tin tài khoản
-                                </a>
-
-                                <a href="@Url.Action("OrderHistory", "Order")">
-                                    <i class="fas fa-history"></i>
-                                    Lịch sử mua hàng
-                                </a>
-
-                                <a href="@Url.Action("Logout", "Account")">
-                                    <i class="fas fa-sign-out-alt"></i>
-                                    Đăng xuất
-                                </a>
-                            }
-                            else
-                            {
-                                <a href="@Url.Action("Register", "Account")">
-                                    <i class="fas fa-user-plus"></i>
-                                    Đăng ký
-                                </a>
-
-                                <a href="@Url.Action("Login", "Account")">
-                                    <i class="fas fa-sign-in-alt"></i>
-                                    Đăng nhập
-                                </a>
-                            }
-
-                        </div>
-
-                    </li>
-
-                    @* Giỏ hàng *@
-                    <li>
-
-                        <a href="@Url.Action("Index", "Cart")"
-                           class="cart-link">
-
-                            <i class="fas fa-shopping-cart"></i>
-                            Giỏ hàng
-
-                            @if (pmmodel.CartCount > 0)
-                            {
-                                <span class="cart-badge">
-                                    @pmmodel.CartCount
-                                </span>
-                            }
-
-                        </a>
-
-                    </li>
-
-                </ul>
-
+            <!-- Menu bên phải: Tài khoản, Đăng nhập, Đăng ký -->
+            <div style="display: flex; align-items: center; gap: 15px;">
+                @if (Session["Username"] != null)
+                {
+                    <a href="@Url.Action("ProfileInfo", "Account", new { area = "" })" style="color: #ffffff; text-decoration: none;">
+                        👤 Xin chào, <strong>@Session["FullName"]</strong>
+                    </a>
+                    <a href="@Url.Action("Logout", "Account", new { area = "" })" style="color: #ffc107; text-decoration: none; font-weight: bold;">Đăng xuất</a>
+                }
+                else
+                {
+                    <a href="@Url.Action("Register", "Account", new { area = "" })" style="color: #ffffff; text-decoration: none; font-weight: 500;">Đăng ký</a>
+                    <a href="@Url.Action("Login", "Account", new { area = "" })" style="color: #ffffff; background-color: #146c43; padding: 6px 14px; border-radius: 4px; text-decoration: none; font-weight: bold;">Đăng nhập</a>
+                }
             </div>
 
         </div>
-
     </div>
 
-
-    <main class="container body-content">
-
+    <div class="container body-content" style="margin-top: 20px; min-height: 70vh;">
         @RenderBody()
+    </div>
 
-    </main>
-
+    <footer>
+        <div class="container text-center">
+            <p>&copy; @DateTime.Now.Year - Hệ thống Cửa hàng Trực tuyến <strong>Store Kiên XiaoLin</strong></p>
+            <p>Sinh viên thực hiện: <strong>Nguyễn Đức Kiên - 25DH110412</strong></p>
+        </div>
+    </footer>
 
     @Scripts.Render("~/bundles/jquery")
-
     @Scripts.Render("~/bundles/bootstrap")
-
-    @* Hỗ trợ section Scripts *@
-    @RenderSection("Scripts", required: false)
-
     @RenderSection("scripts", required: false)
-
 </body>
 </html>

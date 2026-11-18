@@ -1,59 +1,423 @@
-﻿@model _25DH110096_MyStoreBE.Models.Order
+﻿
+@model _25DH110096_MyStoreBE.Models.Order
+
+@using System;
+@using System.Globalization;
+@using System.Linq;
 
 @{
-    ViewBag.Title = "Details";
+    ViewBag.Title = "Hóa đơn đơn hàng";
     Layout = "~/Areas/Admin/Views/Shared/_AdminsLayout.cshtml";
+
+    string orderDateText =
+        Model.OrderDate == DateTime.MinValue
+        ? "Chưa xác định"
+        : Model.OrderDate.ToString("dd/MM/yyyy HH:mm");
+
+    string deliveryAddress =
+        !String.IsNullOrWhiteSpace(Model.ShippingAddress)
+        ? Model.ShippingAddress
+        : Model.AddressDelivery;
+
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+
+    string defaultImage = Url.Content("~/Content/images/default_img.png");
 }
 
-<h2>Details</h2>
+<style>
+    .invoice-container {
+        max-width: 1000px;
+        margin: 20px auto;
+        padding: 30px;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        color: #333;
+    }
 
-<div>
-    <h4>Order</h4>
-    <hr />
-    <dl class="dl-horizontal">
-        <dt>
-            @Html.DisplayNameFor(model => model.OrderDate)
-        </dt>
+    .invoice-header {
+        text-align: center;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #b72e3c;
+        margin-bottom: 25px;
+    }
 
-        <dd>
-            @Html.DisplayFor(model => model.OrderDate)
-        </dd>
+    .invoice-logo {
+        font-size: 28px;
+        font-weight: 900;
+        color: #b72e3c;
+        letter-spacing: 2px;
+    }
 
-        <dt>
-            @Html.DisplayNameFor(model => model.TotalAmount)
-        </dt>
+    .invoice-header h2 {
+        font-size: 23px;
+        font-weight: bold;
+        margin: 10px 0;
+    }
 
-        <dd>
-            @Html.DisplayFor(model => model.TotalAmount)
-        </dd>
+    .invoice-header p {
+        color: #888;
+        margin: 0;
+    }
 
-        <dt>
-            @Html.DisplayNameFor(model => model.PaymentStatus)
-        </dt>
+    .invoice-section {
+        margin-bottom: 25px;
+    }
 
-        <dd>
-            @Html.DisplayFor(model => model.PaymentStatus)
-        </dd>
+        .invoice-section h3 {
+            font-size: 17px;
+            font-weight: bold;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 15px;
+            color: #b72e3c;
+        }
 
-        <dt>
-            @Html.DisplayNameFor(model => model.AddressDelivery)
-        </dt>
+    .invoice-info p {
+        margin: 9px 0;
+        font-size: 14px;
+    }
 
-        <dd>
-            @Html.DisplayFor(model => model.AddressDelivery)
-        </dd>
+    .invoice-info strong {
+        display: inline-block;
+        min-width: 160px;
+    }
 
-        <dt>
-            @Html.DisplayNameFor(model => model.Customer.CustomerName)
-        </dt>
+    .invoice-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
 
-        <dd>
-            @Html.DisplayFor(model => model.Customer.CustomerName)
-        </dd>
+        .invoice-table th {
+            background: #f2f2f2;
+            padding: 12px 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
 
-    </dl>
+        .invoice-table td {
+            padding: 12px 10px;
+            border: 1px solid #ddd;
+            vertical-align: middle;
+        }
+
+    .invoice-product-image {
+        width: 65px;
+        height: 65px;
+        object-fit: contain;
+    }
+
+    .invoice-product-name {
+        font-weight: 600;
+    }
+
+    .invoice-number {
+        text-align: center;
+    }
+
+    .invoice-price {
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    .invoice-total {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 25px;
+        margin-top: 20px;
+        padding: 18px;
+        background: #f7f7f7;
+        border-radius: 5px;
+    }
+
+        .invoice-total strong {
+            font-size: 17px;
+        }
+
+        .invoice-total span {
+            color: #b72e3c;
+            font-size: 23px;
+            font-weight: bold;
+        }
+
+    .invoice-actions {
+        margin-top: 25px;
+        padding-top: 15px;
+        border-top: 1px solid #ddd;
+    }
+
+    .btn-invoice-back {
+        display: inline-block;
+        background: #b72e3c;
+        color: white !important;
+        padding: 9px 18px;
+        text-decoration: none !important;
+        border-radius: 4px;
+    }
+
+        .btn-invoice-back:hover {
+            background: #922431;
+        }
+
+    @@media(max-width: 768px) {
+        .invoice-container {
+            padding: 15px;
+        }
+
+        .invoice-table-wrapper {
+            overflow-x: auto;
+        }
+
+        .invoice-table {
+            min-width: 650px;
+        }
+
+        .invoice-info strong {
+            min-width: 125px;
+        }
+
+        .invoice-total {
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+    }
+</style>
+
+<div class="invoice-container">
+
+    <!-- ĐẦU HÓA ĐƠN -->
+    <div class="invoice-header">
+
+        <div class="invoice-logo">
+            FASTOR
+        </div>
+
+        <h2>HÓA ĐƠN BÁN HÀNG</h2>
+
+        <p>Chi tiết thông tin đơn hàng</p>
+
+    </div>
+
+
+    <!-- THÔNG TIN ĐƠN HÀNG -->
+    <div class="invoice-section">
+
+        <h3>1. THÔNG TIN ĐƠN HÀNG</h3>
+
+        <div class="invoice-info">
+
+            <p>
+                <strong>Mã đơn hàng:</strong>
+                #@Model.OrderID
+            </p>
+
+            <p>
+                <strong>Ngày đặt hàng:</strong>
+                @orderDateText
+            </p>
+
+            <p>
+                <strong>Trạng thái thanh toán:</strong>
+                @(String.IsNullOrWhiteSpace(Model.PaymentStatus)
+                    ? "Chưa xác định"
+                    : Model.PaymentStatus)
+            </p>
+
+            <p>
+                <strong>Phương thức thanh toán:</strong>
+                @(String.IsNullOrWhiteSpace(Model.PaymentMethod)
+                    ? "Chưa xác định"
+                    : Model.PaymentMethod)
+            </p>
+
+            <p>
+                <strong>Phương thức giao hàng:</strong>
+                @(String.IsNullOrWhiteSpace(Model.ShippingMethod)
+                    ? "Chưa xác định"
+                    : Model.ShippingMethod)
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- THÔNG TIN KHÁCH HÀNG -->
+    <div class="invoice-section">
+
+        <h3>2. THÔNG TIN KHÁCH HÀNG</h3>
+
+        <div class="invoice-info">
+
+            <p>
+                <strong>Họ tên:</strong>
+                @(Model.Customer != null
+                    ? Model.Customer.CustomerName
+                    : "Không xác định")
+            </p>
+
+            <p>
+                <strong>Số điện thoại:</strong>
+                @(Model.Customer != null
+                    ? Model.Customer.CustomerPhone
+                    : "Không xác định")
+            </p>
+
+            <p>
+                <strong>Email:</strong>
+                @(Model.Customer != null
+                    ? Model.Customer.CustomerEmail
+                    : "Không xác định")
+            </p>
+
+            <p>
+                <strong>Địa chỉ khách hàng:</strong>
+                @(Model.Customer != null
+                    ? Model.Customer.CustomerAddress
+                    : "Không xác định")
+            </p>
+
+            <p>
+                <strong>Địa chỉ giao hàng:</strong>
+                @(String.IsNullOrWhiteSpace(deliveryAddress)
+                    ? "Chưa xác định"
+                    : deliveryAddress)
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- DANH SÁCH SẢN PHẨM -->
+    <div class="invoice-section">
+
+        <h3>3. DANH SÁCH SẢN PHẨM</h3>
+
+        <div class="invoice-table-wrapper">
+
+            <table class="invoice-table">
+
+                <thead>
+                    <tr>
+                        <th>Hình ảnh</th>
+                        <th>Tên sản phẩm</th>
+                        <th>Số lượng</th>
+                        <th>Đơn giá</th>
+                        <th>Thành tiền</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @if (Model.OrderDetails != null &&
+                         Model.OrderDetails.Any())
+                    {
+                        foreach (var detail in Model.OrderDetails)
+                        {
+                            string productImage = defaultImage;
+
+                            string productName = detail.Product != null
+                                ? detail.Product.ProductName
+                                : "Sản phẩm không tồn tại";
+
+                            if (detail.Product != null &&
+                                !String.IsNullOrWhiteSpace(detail.Product.ProductImage))
+                            {
+                                string savedImage = detail.Product.ProductImage;
+
+                                if (savedImage.StartsWith("~/"))
+                                {
+                                    productImage = Url.Content(savedImage);
+                                }
+                                else if (
+                                    savedImage.StartsWith("http://",
+                                        StringComparison.OrdinalIgnoreCase) ||
+                                    savedImage.StartsWith("https://",
+                                        StringComparison.OrdinalIgnoreCase))
+                                {
+                                    productImage = savedImage;
+                                }
+                                else
+                                {
+                                    productImage = Url.Content(
+                                        "~/" + savedImage.TrimStart('/'));
+                                }
+                            }
+
+                            decimal lineTotal = detail.TotalPrice
+                                ?? (detail.Quantity * detail.UnitPrice);
+
+                            <tr>
+
+                                <td class="invoice-number">
+                                    <img src="@productImage"
+                                         class="invoice-product-image"
+                                         alt="@productName"
+                                         onerror="this.onerror=null;this.src='@defaultImage';" />
+                                </td>
+
+                                <td>
+                                    <span class="invoice-product-name">
+                                        @productName
+                                    </span>
+                                </td>
+
+                                <td class="invoice-number">
+                                    @detail.Quantity
+                                </td>
+
+                                <td class="invoice-price">
+                                    @detail.UnitPrice.ToString("N0", culture) ₫
+                                </td>
+
+                                <td class="invoice-price">
+                                    @lineTotal.ToString("N0", culture) ₫
+                                </td>
+
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="invoice-number">
+                                Đơn hàng chưa có sản phẩm.
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- TỔNG TIỀN -->
+        <div class="invoice-total">
+
+            <strong>TỔNG THANH TOÁN:</strong>
+
+            <span>
+                @Model.TotalAmount.ToString("N0", culture) ₫
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- QUAY LẠI -->
+    <div class="invoice-actions">
+
+        @Html.ActionLink(
+                 "Quay lại danh sách đơn hàng",
+                 "Index",
+                 null,
+                 new { @class = "btn-invoice-back" }
+             )
+
+    </div>
+
 </div>
-<p>
-    @Html.ActionLink("Edit", "Edit", new { id = Model.OrderID }) |
-    @Html.ActionLink("Back to List", "Index")
-</p>
